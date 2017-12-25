@@ -1,2 +1,5 @@
 package: github.com/tonyhhyip/vodka
-import: []
+import:
+- package: golang.org/x/net
+  subpackages:
+  - context

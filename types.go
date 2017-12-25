@@ -6,12 +6,22 @@ import (
 	"time"
 
 	"github.com/tonyhhyip/vodka/errors"
-	"github.com/tonyhhyip/vodka/route"
 	"golang.org/x/net/context"
 )
 
-type Handler func (c Context)
-type HandlersChain []Handler
+type Method string
+
+const (
+	Head    Method = "head"
+	Get     Method = "get"
+	Post    Method = "post"
+	Put     Method = "put"
+	Delete  Method = "delete"
+	Patch   Method = "patch"
+	Options Method = "options"
+)
+
+type Handler func(c Context)
 
 type Engine interface {
 	http.Handler
@@ -21,11 +31,14 @@ type Engine interface {
 	Run(addr string) error
 	RunTLS(addr string, certFile string, keyFile string) error
 	HandleContext(c Context)
-	AddRouter(router route.Router)
+	AddHandler(handler Handler)
 }
 
 type Context interface {
 	context.Context
+
+	GetRequest() *http.Request
+	GetResponse() http.ResponseWriter
 
 	Copy() Context
 	HandlerName() string
@@ -69,6 +82,8 @@ type Context interface {
 
 	ClientIP() string
 	ContentType() string
+	GetMethod() Method
+	GetPath() string
 
 	Status(code int)
 	Header(key, value string)

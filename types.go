@@ -30,8 +30,6 @@ type Engine interface {
 	http.Handler
 	runNext
 
-	New() Engine
-	Default() Engine
 	Run(addr string) error
 	RunTLS(addr string, certFile string, keyFile string) error
 	HandleContext(c Context)

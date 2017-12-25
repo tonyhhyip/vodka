@@ -27,6 +27,7 @@ func filterFlags(content string) string {
 type BasicContext struct {
 	handlers []Handler
 	index    uint
+	engine   Engine
 
 	request  *http.Request
 	response http.ResponseWriter
@@ -44,6 +45,7 @@ func (c *BasicContext) Next() {
 		if !c.IsAborted() {
 			c.Abort()
 		}
+		c.engine.Next()
 		return
 	}
 

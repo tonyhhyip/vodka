@@ -31,7 +31,6 @@ type Engine interface {
 	runNext
 
 	Run(addr string) error
-	RunTLS(addr string, certFile string, keyFile string) error
 	HandleContext(c Context)
 	AddHandler(handler Handler)
 }

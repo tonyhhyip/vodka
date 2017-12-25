@@ -14,6 +14,10 @@ type defaultError struct {
 	meta      map[string]interface{}
 }
 
+func (e *defaultError) Error() string {
+	return e.source.Error()
+}
+
 func (e *defaultError) GetSource() error {
 	return e.source
 }

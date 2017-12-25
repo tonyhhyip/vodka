@@ -13,6 +13,7 @@ const (
 )
 
 type Error interface {
+	error
 	GetSource() error
 	GetType() ErrorType
 	GetMeta() map[string]interface{}

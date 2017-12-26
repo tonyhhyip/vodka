@@ -23,7 +23,7 @@ const (
 type Handler func(c Context)
 
 type runNext interface {
-	Next()
+	Next(Context)
 }
 
 func NewVodka() Engine {

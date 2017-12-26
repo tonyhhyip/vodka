@@ -10,7 +10,7 @@ type engine struct {
 	handlers []Handler
 }
 
-func (e *engine) Next() {}
+func (e *engine) Next(ctx Context) {}
 
 func (e *engine) AddHandler(handler Handler) {
 	e.handlers = append(e.handlers, handler)

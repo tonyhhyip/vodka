@@ -40,10 +40,10 @@ type BasicContext struct {
 	status int
 }
 
-func (c *BasicContext) Next() {
+func (c *BasicContext) Next(ctx Context) {
 	c.index++
 	if int(c.index) > len(c.handlers) {
-		c.engine.Next()
+		c.engine.Next(ctx)
 		return
 	}
 

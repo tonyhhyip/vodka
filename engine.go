@@ -17,16 +17,14 @@ func (e *engine) AddHandler(handler Handler) {
 }
 
 func (e *engine) HandleContext(c Context) {
-	for i := 0; !c.IsAborted() && len(e.handlers) < i; i++ {
-		e.handlers[i](c)
-	}
+	e.handlers[0](c)
 	c.Abort()
 }
 
 func (e *engine) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
 	c := &BasicContext{
-		handlers: []Handler{},
-		index:    -1,
+		handlers: e.handlers,
+		index:    0,
 		engine:   e,
 		request:  req,
 		response: resp,

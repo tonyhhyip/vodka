@@ -26,6 +26,10 @@ type runNext interface {
 	Next()
 }
 
+func NewVodka() Engine {
+	return &engine{}
+}
+
 type Engine interface {
 	http.Handler
 	runNext

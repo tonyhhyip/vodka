@@ -42,9 +42,6 @@ type BasicContext struct {
 func (c *BasicContext) Next() {
 	c.index++
 	if int(c.index) > len(c.handlers) {
-		if !c.IsAborted() {
-			c.Abort()
-		}
 		c.engine.Next()
 		return
 	}

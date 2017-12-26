@@ -1,14 +1,42 @@
-package vodka
+package plugins
 
 import (
 	"mime/multipart"
 	"net/http"
+	"time"
 
+	"github.com/tonyhhyip/vodka"
 	"github.com/tonyhhyip/vodka/errors"
 )
 
+func WrapContext(c vodka.Context) ContextWrapper {
+	return ContextWrapper{
+		Context: c,
+	}
+}
+
 type ContextWrapper struct {
-	Context Context
+	Context vodka.Context
+}
+
+func (c *ContextWrapper) Deadline() (deadline time.Time, ok bool) {
+	return c.Context.Deadline()
+}
+
+func (c *ContextWrapper) Done() <-chan struct{} {
+	return c.Context.Done()
+}
+
+func (c *ContextWrapper) Err() error {
+	return c.Context.Err()
+}
+
+func (c *ContextWrapper) Value(key interface{}) interface{} {
+	return c.Context.Value(key)
+}
+
+func (c *ContextWrapper) Next(ctx vodka.Context) {
+	c.Context.Next(ctx)
 }
 
 func (c *ContextWrapper) GetRequest() *http.Request {
@@ -75,7 +103,7 @@ func (c *ContextWrapper) ContentType() string {
 	return c.Context.ContentType()
 }
 
-func (c *ContextWrapper) GetMethod() Method {
+func (c *ContextWrapper) GetMethod() vodka.Method {
 	return c.Context.GetMethod()
 }
 

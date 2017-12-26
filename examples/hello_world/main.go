@@ -9,7 +9,9 @@ func main() {
 	app := vodka.NewVodka()
 	app.AddHandler(log.RequestLogger(log.ApacheCommon))
 	app.AddHandler(func(c vodka.Context) {
-		c.Data(200, "text/plain", []byte("hello world"))
+		c.Status(200)
+		c.Header("Content-Type", "text/plains")
+		c.Data([]byte("hello world"))
 	})
 	app.Run(":3000")
 }

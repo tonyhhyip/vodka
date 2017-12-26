@@ -82,5 +82,5 @@ type Context interface {
 	)
 	Cookie(name string) (string, error)
 
-	Data(code int, contentType string, data []byte)
+	Data(data []byte)
 }

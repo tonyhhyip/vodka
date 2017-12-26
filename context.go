@@ -229,10 +229,8 @@ func (c *BasicContext) Cookie(name string) (string, error) {
 	return val, nil
 }
 
-func (c *BasicContext) Data(code int, contentType string, data []byte) {
-	c.Status(code)
-	c.Header("Content-Type", contentType)
-	_, _ = c.response.Write(data)
+func (c *BasicContext) Data(data []byte) {
+	c.response.Write(data)
 }
 
 func (c *BasicContext) Deadline() (deadline time.Time, ok bool) {

@@ -24,7 +24,8 @@ func (r *requestLog) createHandler() vodka.Handler {
 		ctx := &sizeCountContext{
 			ContextWrapper: plugins.WrapContext(c),
 		}
-		c.Next(ctx)
+		ctx.Next(ctx)
+		ctx.Abort()
 		r.logger.WithField("context", ctx).Info()
 	}
 }

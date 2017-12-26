@@ -37,6 +37,7 @@ type BasicContext struct {
 	ctx    map[string]interface{}
 	params map[string]string
 	errors []errors.Error
+	status int
 }
 
 func (c *BasicContext) Next() {
@@ -179,7 +180,12 @@ func (c *BasicContext) GetPath() string {
 	return c.request.URL.Path
 }
 
+func (c *BasicContext) GetStatus() int {
+	return c.status
+}
+
 func (c *BasicContext) Status(code int) {
+	c.status = code
 	c.response.WriteHeader(code)
 }
 

@@ -64,6 +64,7 @@ type Context interface {
 	GetHeader(key string) string
 
 	Status(code int)
+	GetStatus() int
 	Header(key, value string)
 
 	SetCookie(

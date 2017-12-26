@@ -39,6 +39,6 @@ func (*ApacheCommonFormatter) Format(e *logrus.Entry) ([]byte, error) {
 	buffer.WriteString(remoteUser)
 	buffer.WriteString(fmt.Sprintf(" [%s] ", e.Time.Format("02/Jan/2006:15:04:05 -0700")))
 	buffer.WriteString(fmt.Sprintf("\"%s %s %s\"", request.Method, request.RequestURI, request.Proto))
-	buffer.WriteString(fmt.Sprintf(" %d %d", context.GetStatus(), response.Header().Get("Content-Length")))
+	buffer.WriteString(fmt.Sprintf(" %d %s", context.GetStatus(), response.Header().Get("Content-Length")))
 	return buffer.Bytes(), nil
 }

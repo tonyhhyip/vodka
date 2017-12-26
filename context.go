@@ -47,7 +47,7 @@ func (c *BasicContext) Next(ctx Context) {
 		return
 	}
 
-	c.handlers[c.index](c)
+	c.handlers[c.index](ctx)
 }
 
 func (c *BasicContext) GetRequest() *http.Request {

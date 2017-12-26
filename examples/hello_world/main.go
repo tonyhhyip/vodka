@@ -1,4 +1,4 @@
-package hello_world
+package main
 
 import (
 	"github.com/tonyhhyip/vodka"

@@ -2,8 +2,6 @@ package simple
 
 import (
 	"net/url"
-
-	"github.com/tonyhhyip/vodka"
 )
 
 func (r *routeHandler) try(path string) (map[string]string, bool) {

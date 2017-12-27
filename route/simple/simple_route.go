@@ -1,15 +1,11 @@
-package group
+package simple
 
 import (
 	"net/http"
 
 	"github.com/tonyhhyip/vodka"
+	"github.com/tonyhhyip/vodka/pkg/routes"
 )
-
-type simpleRoute struct {
-	handlers map[vodka.Method][]*routeHandler
-	fallback vodka.Handler
-}
 
 func (r *simpleRoute) Match(method vodka.Method, path string) ([]vodka.Handler, map[string]string) {
 	for _, handler := range r.handlers[method] {
@@ -30,7 +26,7 @@ func notFound(c vodka.Context) {
 	c.Data([]byte("Not Found"))
 }
 
-func (r *simpleRoute) Any(path string, handlers ...vodka.Handler) Route {
+func (r *simpleRoute) Any(path string, handlers ...vodka.Handler) routes.RouteTable {
 	r.GET(path, handlers...)
 	r.POST(path, handlers...)
 	r.PATCH(path, handlers...)
@@ -39,42 +35,43 @@ func (r *simpleRoute) Any(path string, handlers ...vodka.Handler) Route {
 	return r
 }
 
-func (r *simpleRoute) HEAD(path string, handlers ...vodka.Handler) Route {
+func (r *simpleRoute) HEAD(path string, handlers ...vodka.Handler) routes.RouteTable {
 	r.Handle(vodka.Head, path, handlers...)
 	return r
 }
 
-func (r *simpleRoute) GET(path string, handlers ...vodka.Handler) Route {
+func (r *simpleRoute) GET(path string, handlers ...vodka.Handler) routes.RouteTable {
 	r.HEAD(path, handlers...)
 	r.Handle(vodka.Get, path, handlers...)
 	return r
 }
 
-func (r *simpleRoute) POST(path string, handlers ...vodka.Handler) Route {
+func (r *simpleRoute) POST(path string, handlers ...vodka.Handler) routes.RouteTable {
 	r.Handle(vodka.Head, path, handlers...)
 	return r
 }
 
-func (r *simpleRoute) DELETE(path string, handlers ...vodka.Handler) Route {
+func (r *simpleRoute) DELETE(path string, handlers ...vodka.Handler) routes.RouteTable {
 	r.Handle(vodka.Delete, path, handlers...)
 	return r
 }
 
-func (r *simpleRoute) PATCH(path string, handlers ...vodka.Handler) Route {
+func (r *simpleRoute) PATCH(path string, handlers ...vodka.Handler) routes.RouteTable {
 	r.Handle(vodka.Patch, path, handlers...)
 	return r
 }
 
-func (r *simpleRoute) PUT(path string, handlers ...vodka.Handler) Route {
+func (r *simpleRoute) PUT(path string, handlers ...vodka.Handler) routes.RouteTable {
 	r.Handle(vodka.Put, path, handlers...)
+	return r
 }
 
-func (r *simpleRoute) OPTIONS(path string, handlers ...vodka.Handler) Route {
+func (r *simpleRoute) OPTIONS(path string, handlers ...vodka.Handler) routes.RouteTable {
 	r.Handle(vodka.Options, path, handlers...)
 	return r
 }
 
-func (r *simpleRoute) Handle(method vodka.Method, path string, handlers ...vodka.Handler) Route {
+func (r *simpleRoute) Handle(method vodka.Method, path string, handlers ...vodka.Handler) routes.RouteApplyAble {
 	r.add(false, method, path, handlers...)
 	return r
 }

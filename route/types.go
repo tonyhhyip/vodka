@@ -2,13 +2,30 @@ package route
 
 import (
 	"github.com/tonyhhyip/vodka"
+	"github.com/tonyhhyip/vodka/pkg/routes"
 )
 
-type Router interface {
-	Match(method vodka.Method, path string) ([]vodka.Handler, map[string]string)
+type BasicRouter interface {
+	routes.Matchable
+	routes.RouteApplyAble
 }
 
-func WrapRouter(router Router) vodka.Handler {
+type EssentialRouter interface {
+	routes.Matchable
+	routes.RouteTable
+}
+
+type EnhanceRouter interface {
+	EssentialRouter
+	routes.MiddlewareAble
+}
+
+type GroupRouter interface {
+	EnhanceRouter
+	routes.Groupable
+}
+
+func WrapRouter(router routes.Matchable) vodka.Handler {
 	return func(c vodka.Context) {
 		handlers, params := router.Match(c.GetMethod(), c.GetPath())
 		for k, v := range params {

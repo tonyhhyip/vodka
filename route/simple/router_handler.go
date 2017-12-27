@@ -1,16 +1,10 @@
-package group
+package simple
 
 import (
 	"net/url"
 
 	"github.com/tonyhhyip/vodka"
 )
-
-type routeHandler struct {
-	handler  []vodka.Handler
-	route    string
-	redirect bool
-}
 
 func (r *routeHandler) try(path string) (map[string]string, bool) {
 	values := make(map[string]string)

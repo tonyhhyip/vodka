@@ -6,7 +6,10 @@ import (
 )
 
 func CreateBasicRoute() route.EssentialRouter {
-	return &simpleRoute{}
+	return &simpleRoute{
+		handlers: make(map[vodka.Method][]*routeHandler),
+		fallback: nil,
+	}
 }
 
 type simpleRoute struct {

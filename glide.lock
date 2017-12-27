@@ -1,5 +1,5 @@
-hash: 29b12b0283d48e5e10e4a297cc8574698c9e25e4b390467963a07993f5d20eb3
-updated: 2017-12-27T03:49:23.121118+08:00
+hash: 87b3aa51dc7ea90492db81a84de98e324c90f7c71211a97a517944ccb95f200a
+updated: 2017-12-27T18:50:30.452331+08:00
 imports:
 - name: github.com/sirupsen/logrus
   version: d682213848ed68c0a260ca37d6dd5ace8423f5ba
@@ -15,4 +15,8 @@ imports:
   version: 99f16d856c9836c42d24e7ab64ea72916925fa97
   subpackages:
   - unix
-testImports: []
+testImports:
+- name: github.com/stretchr/testify
+  version: 69483b4bd14f5845b5a1e55bca19e954e827f1d0
+  subpackages:
+  - assets

@@ -77,7 +77,11 @@ func (r *simpleRoute) Handle(method vodka.Method, path string, handlers ...vodka
 }
 
 func (r *simpleRoute) add(redirect bool, method vodka.Method, path string, h ...vodka.Handler) {
-	handlers := r.handlers[method]
+	handlers, exists := r.handlers[method]
+	if !exists {
+		r.handlers[method] = make([]*routeHandler, 0)
+		handlers = r.handlers[method]
+	}
 	for _, handler := range handlers {
 		if handler.route == path {
 			if !redirect {
@@ -102,7 +106,7 @@ func (r *simpleRoute) add(redirect bool, method vodka.Method, path string, h ...
 }
 
 func addSlashRedirect(c vodka.Context) {
-	u := *c.GetRequest().URL
+	u := c.GetRequest().URL
 	u.Path += "/"
 	c.Status(http.StatusMovedPermanently)
 	c.Header("Location", u.String())

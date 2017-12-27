@@ -54,6 +54,7 @@ type Context interface {
 	Get(key string) (value interface{}, exists bool)
 
 	Param(key string) string
+	SetParam(key, value string)
 	Query(key string) (string, bool)
 	QueryArray(key string) ([]string, bool)
 	PostForm(key string) (string, bool)

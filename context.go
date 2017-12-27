@@ -93,6 +93,10 @@ func (c *BasicContext) Param(key string) string {
 	return c.params[key]
 }
 
+func (c *BasicContext) SetParam(key, value string) {
+	c.params[key] = value
+}
+
 func (c *BasicContext) Query(key string) (string, bool) {
 	if values, ok := c.QueryArray(key); ok {
 		return values[0], ok

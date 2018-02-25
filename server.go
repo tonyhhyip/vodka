@@ -66,7 +66,7 @@ func (srv *Server) init(handler Handler) {
 		select {
 		case <-finish:
 		case <-ctx.Done():
-			srv.logger.Errorf("Timeout: %s", ctx.Err().Error())
+			srv.logger.Error(ctx.Err())
 		}
 	})
 }

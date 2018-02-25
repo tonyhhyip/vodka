@@ -1,261 +1,238 @@
 package vodka
 
 import (
+	"context"
+	"encoding/json"
+	"encoding/xml"
 	"mime/multipart"
-	"net"
 	"net/http"
 	"net/url"
-	"strings"
-	"time"
-
-	"github.com/tonyhhyip/vodka/errors"
 )
 
+// MIME types
 const (
-	defaultMemory = 100 << 20 // 100 MB
+	MIMEJSON = "application/json"
+	MIMEXML  = "application/xml"
 )
 
-func filterFlags(content string) string {
-	for i, char := range content {
-		if char == ' ' || char == ';' {
-			return content[:i]
-		}
+// Request methods.
+const (
+	MethodGet     = "GET"
+	MethodPost    = "POST"
+	MethodPut     = "PUT"
+	MethodDelete  = "DELETE"
+	MethodHead    = "HEAD"
+	MethodConnect = "CONNECT"
+	MethodOptions = "OPTIONS"
+	MethodPatch   = "PATCH"
+)
+
+func newContext(base context.Context, s *Server, w http.ResponseWriter, r *http.Request) *Context {
+	return &Context{
+		Context:  base,
+		server:   s,
+		Request:  r,
+		Response: w,
 	}
-	return content
 }
 
-type BasicContext struct {
-	handlers []Handler
-	index    uint
-	engine   Engine
+type userValue []*userData
 
-	request  *http.Request
-	response http.ResponseWriter
-
-	abort bool
-
-	ctx    map[string]interface{}
-	params map[string]string
-	errors []errors.Error
-	status int
+type userData struct {
+	key   string
+	value interface{}
 }
 
-func (c *BasicContext) Next(ctx Context) {
-	c.index++
-	if int(c.index) > len(c.handlers) {
-		c.engine.Next(ctx)
+// Context contains *http.Request and http.Response.
+type Context struct {
+	context.Context
+
+	server    *Server
+	userValue userValue
+
+	Request  *http.Request
+	Response http.ResponseWriter
+}
+
+// SetUserValue stores the given value under the given key in ctx.
+func (ctx *Context) SetUserValue(key string, value interface{}) {
+	data := userData{key: key, value: value}
+
+	if ctx.userValue == nil {
+		ctx.userValue = make(userValue, 0)
+		ctx.userValue = append(ctx.userValue, &data)
 		return
 	}
 
-	c.handlers[c.index](ctx)
-}
-
-func (c *BasicContext) GetRequest() *http.Request {
-	return c.request
-}
-
-func (c *BasicContext) GetResponse() http.ResponseWriter {
-	return c.response
-}
-
-func (c *BasicContext) IsAborted() bool {
-	return c.abort
-}
-
-func (c *BasicContext) Abort() {
-	c.abort = true
-}
-
-func (c *BasicContext) Error(err error) errors.Error {
-	var parsedError errors.Error
-	switch err.(type) {
-	case errors.Error:
-		parsedError = err.(errors.Error)
-	default:
-		parsedError = errors.NewError(err, errors.ErrorTypePrivate, nil)
-	}
-
-	c.errors = append(c.errors, parsedError)
-
-	return parsedError
-}
-
-func (c *BasicContext) Set(key string, value interface{}) {
-	c.ctx[key] = value
-}
-
-func (c *BasicContext) Get(key string) (value interface{}, exists bool) {
-	value, exists = c.ctx[key]
-	return
-}
-
-func (c *BasicContext) Param(key string) string {
-	return c.params[key]
-}
-
-func (c *BasicContext) SetParam(key, value string) {
-	c.params[key] = value
-}
-
-func (c *BasicContext) Query(key string) (string, bool) {
-	if values, ok := c.QueryArray(key); ok {
-		return values[0], ok
-	}
-	return "", false
-}
-
-func (c *BasicContext) QueryArray(key string) ([]string, bool) {
-	req := c.request
-	if values, ok := req.URL.Query()[key]; ok && len(values) > 0 {
-		return values, true
-	}
-	return []string{}, false
-}
-
-func (c *BasicContext) PostForm(key string) (string, bool) {
-	if values, ok := c.PostFormArray(key); ok {
-		return values[0], ok
-	}
-	return "", false
-}
-
-func (c *BasicContext) PostFormArray(key string) ([]string, bool) {
-	req := c.request
-	req.ParseForm()
-	req.ParseMultipartForm(defaultMemory)
-	if values := req.PostForm[key]; len(values) > 0 {
-		return values, true
-	}
-	if req.MultipartForm != nil && req.MultipartForm.File != nil {
-		if values := req.MultipartForm.Value[key]; len(values) > 0 {
-			return values, true
+	for i := 0; i < len(ctx.userValue); i++ {
+		if ctx.userValue[i].key == key {
+			ctx.userValue[i].value = value
+			return
 		}
 	}
-	return []string{}, false
+
+	ctx.userValue = append(ctx.userValue, &data)
 }
 
-func (c *BasicContext) FormFile(name string) (*multipart.FileHeader, error) {
-	_, fh, err := c.request.FormFile(name)
-	return fh, err
-}
-
-func (c *BasicContext) MultipartForm() (*multipart.Form, error) {
-	err := c.request.ParseMultipartForm(defaultMemory)
-	return c.request.MultipartForm, err
-}
-
-func (c *BasicContext) ClientIP() string {
-	clientIP := c.GetHeader("X-Forwarded-For")
-	if index := strings.IndexByte(clientIP, ','); index >= 0 {
-		clientIP = clientIP[0:index]
-	}
-	clientIP = strings.TrimSpace(clientIP)
-	if len(clientIP) > 0 {
-		return clientIP
-	}
-	clientIP = strings.TrimSpace(c.GetHeader("X-Real-Ip"))
-	if len(clientIP) > 0 {
-		return clientIP
+// UserValue returns the value stored via SetUserValue* under the given key.
+func (ctx *Context) UserValue(key string) interface{} {
+	if ctx.userValue == nil {
+		return nil
 	}
 
-	if ip, _, err := net.SplitHostPort(strings.TrimSpace(c.request.RemoteAddr)); err == nil {
-		return ip
+	values := ctx.userValue
+	for i := 0; i < len(values); i++ {
+		if values[i].key == key {
+			return values[i].value
+		}
 	}
 
-	return ""
+	return nil
 }
 
-func (c *BasicContext) ContentType() string {
-	return filterFlags(c.GetHeader("Content-Type"))
+// Logger returns the server's logger.
+func (ctx *Context) Logger() Logger {
+	return ctx.server.logger
 }
 
-func (c *BasicContext) GetHeader(key string) string {
-	if values, _ := c.request.Header[key]; len(values) > 0 {
-		return values[0]
-	}
-	return ""
+// SetServer for testing, do not use it in other places.
+func (ctx *Context) SetServer(server *Server) {
+	ctx.server = server
 }
 
-func (c *BasicContext) GetMethod() Method {
-	return Method(c.request.Method)
+// Redirect replies to the request with a redirect to url,
+// which may be a path relative to the request path.
+func (ctx *Context) Redirect(url string, code int) {
+	http.Redirect(ctx.Response, ctx.Request, url, code)
 }
 
-func (c *BasicContext) GetPath() string {
-	return c.request.URL.Path
+// IsDelete returns true if request method is DELETE.
+func (ctx *Context) IsDelete() bool {
+	return ctx.Request.Method == MethodDelete
 }
 
-func (c *BasicContext) GetStatus() int {
-	return c.status
+// IsGet returns true if request method is GET.
+func (ctx *Context) IsGet() bool {
+	return ctx.Request.Method == MethodGet
 }
 
-func (c *BasicContext) Status(code int) {
-	c.status = code
-	c.response.WriteHeader(code)
+// IsHead returns true if request method is HEAD.
+func (ctx *Context) IsHead() bool {
+	return ctx.Request.Method == MethodHead
 }
 
-func (c *BasicContext) Header(key, value string) {
-	if len(value) == 0 {
-		c.response.Header().Del(key)
-	} else {
-		c.response.Header().Set(key, value)
-	}
+// IsPost returns true if request method is POST.
+func (ctx *Context) IsPost() bool {
+	return ctx.Request.Method == MethodPost
 }
 
-func (c *BasicContext) SetCookie(
-	name string,
-	value string,
-	maxAge int,
-	path string,
-	domain string,
-	secure bool,
-	httpOnly bool,
-) {
-	if path == "" {
-		path = "/"
-	}
-	http.SetCookie(c.response, &http.Cookie{
-		Name:     name,
-		Value:    url.QueryEscape(value),
-		MaxAge:   maxAge,
-		Path:     path,
-		Domain:   domain,
-		Secure:   secure,
-		HttpOnly: httpOnly,
-	})
+// IsPut returns true if request method is PUT.
+func (ctx *Context) IsPut() bool {
+	return ctx.Request.Method == MethodPut
 }
 
-func (c *BasicContext) Cookie(name string) (string, error) {
-	cookie, err := c.request.Cookie(name)
+// IsAjax returns true if request is an AJAX (XMLHttpRequest) request.
+func (ctx *Context) IsAjax() bool {
+	return ctx.Request.Header.Get("X-Requested-With") == "XMLHttpRequest"
+}
+
+// Error is a shortcut of http.Error
+func (ctx *Context) Error(error string, code int) {
+	http.Error(ctx.Response, error, code)
+}
+
+// NotFound is a shortcut of http.NotFound
+func (ctx *Context) NotFound() {
+	http.NotFound(ctx.Response, ctx.Request)
+}
+
+// SetContentType set response Content-Type.
+func (ctx *Context) SetContentType(v string) {
+	ctx.Response.Header().Set("Content-Type", v)
+}
+
+// SetStatusCode is shortcut of http.ResponseWriter.WriteHeader.
+func (ctx *Context) SetStatusCode(code int) {
+	ctx.Response.WriteHeader(code)
+}
+
+// URL is shortcut of http.Request.URL.
+func (ctx *Context) URL() *url.URL {
+	return ctx.Request.URL
+}
+
+// FormValue is a shortcut of http.Request.FormValue.
+func (ctx *Context) FormValue(key string) string {
+	return ctx.Request.FormValue(key)
+}
+
+// PostFormValue is a shortcut of http.Request.PostFormValue.
+func (ctx *Context) PostFormValue(key string) string {
+	return ctx.Request.PostFormValue(key)
+}
+
+// ParseForm is a shortcut of http.Request.ParseForm.
+func (ctx *Context) ParseForm() error {
+	return ctx.Request.ParseForm()
+}
+
+// FormFile is a shortcut of http.Request.FormFile.
+func (ctx *Context) FormFile(key string) (multipart.File, *multipart.FileHeader, error) {
+	return ctx.Request.FormFile(key)
+}
+
+// Host returns the value of http.Request.Host.
+func (ctx *Context) Host() string {
+	return ctx.Request.Host
+}
+
+// Referer is a shortcut of http.Request.Referer.
+func (ctx *Context) Referer() string {
+	return ctx.Request.Referer()
+}
+
+// Write is a shortcut of http.Response.Write.
+func (ctx *Context) Write(p []byte) (n int, err error) {
+	return ctx.Response.Write(p)
+}
+
+// Set response status code
+func (ctx *Context) Status(code int) {
+	ctx.Response.WriteHeader(code)
+}
+
+// JSON responses JSON data and custom status code to client.
+func (ctx *Context) JSON(code int, v interface{}) {
+	data, err := json.Marshal(v)
 	if err != nil {
-		return "", err
+		ctx.Logger().Errorf("JSON error: %s\n", err)
+		ctx.Response.WriteHeader(http.StatusInternalServerError)
+		return
 	}
-	val, _ := url.QueryUnescape(cookie.Value)
-	return val, nil
+	ctx.SetContentType(MIMEJSON)
+	ctx.Status(code)
+	ctx.Write(data)
 }
 
-func (c *BasicContext) Data(data []byte) {
-	c.response.Write(data)
-}
-
-func (c *BasicContext) Deadline() (deadline time.Time, ok bool) {
-	return
-}
-
-func (c *BasicContext) Done() <-chan struct{} {
-	return nil
-}
-
-func (c *BasicContext) Err() error {
-	return nil
-}
-
-func (c *BasicContext) Value(key interface{}) interface{} {
-	if key == 0 {
-		return c.request
+// XML responses XML data and custom status code to client.
+func (ctx *Context) XML(code int, v interface{}, headers ...string) {
+	data, err := xml.Marshal(v)
+	if err != nil {
+		ctx.Logger().Errorf("XML error: %s\n", err)
+		ctx.Response.WriteHeader(http.StatusInternalServerError)
+		return
 	}
-	if keyAsString, ok := key.(string); ok {
-		val, _ := c.Get(keyAsString)
-		return val
+
+	header := xml.Header
+	if len(headers) > 0 {
+		header = headers[0]
 	}
-	return nil
+
+	var bytes []byte
+	bytes = append(bytes, header...)
+	bytes = append(bytes, data...)
+
+	ctx.SetContentType(MIMEXML)
+	ctx.Status(code)
+	ctx.Write(bytes)
 }

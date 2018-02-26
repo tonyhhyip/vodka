@@ -1,2 +1,5 @@
 package: github.com/tonyhhyip/vodka
 import: []
+testImport:
+- package: github.com/sirupsen/logrus
+  version: ^1.0.4

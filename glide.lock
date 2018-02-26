@@ -1,22 +1,14 @@
-hash: 87b3aa51dc7ea90492db81a84de98e324c90f7c71211a97a517944ccb95f200a
-updated: 2017-12-27T18:50:30.452331+08:00
-imports:
+hash: b1fb16eb31948f81a2f2bd7e2400b713fbba8ed0c2b8815c0337f2af848c0a50
+updated: 2018-02-26T17:12:01.109854+08:00
+imports: []
+testImports:
 - name: github.com/sirupsen/logrus
   version: d682213848ed68c0a260ca37d6dd5ace8423f5ba
 - name: golang.org/x/crypto
   version: adbae1b6b6fb4b02448a0fc0dbbc9ba2b95b294d
   subpackages:
   - ssh/terminal
-- name: golang.org/x/net
-  version: d4c55e66d8c3a2f3382d264b08e3e3454a66355a
-  subpackages:
-  - context
 - name: golang.org/x/sys
   version: 99f16d856c9836c42d24e7ab64ea72916925fa97
   subpackages:
   - unix
-testImports:
-- name: github.com/stretchr/testify
-  version: 69483b4bd14f5845b5a1e55bca19e954e827f1d0
-  subpackages:
-  - assets

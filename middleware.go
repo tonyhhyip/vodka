@@ -10,16 +10,6 @@ type Middleware interface {
 
 type MiddlewareFunc func(next Handler) Handler
 
-func FromMiddlewareFunc(w MiddlewareFunc) Middleware {
-	return &middlewareWrapper{
-		function: w,
-	}
-}
-
-type middlewareWrapper struct {
-	function MiddlewareFunc
-}
-
-func (wrapper *middlewareWrapper) Wrap(next Handler) Handler {
-	return wrapper.function(next)
+func (f MiddlewareFunc) Wrap(next Handler) Handler {
+	return f(next)
 }

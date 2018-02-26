@@ -8,18 +8,18 @@ type Middleware interface {
 	Wrap(next Handler) Handler
 }
 
-type Wrapper func(next Handler) Handler
+type MiddlewareFunc func(next Handler) Handler
 
-func WrapMiddleware(w Wrapper) Middleware {
-	return &wrapMiddleware{
-		w: w,
+func FromMiddlewareFunc(w MiddlewareFunc) Middleware {
+	return &middlewareWrapper{
+		function: w,
 	}
 }
 
-type wrapMiddleware struct {
-	w Wrapper
+type middlewareWrapper struct {
+	function MiddlewareFunc
 }
 
-func (wm *wrapMiddleware) Wrap(next Handler) Handler {
-	return wm.w(next)
+func (wrapper *middlewareWrapper) Wrap(next Handler) Handler {
+	return wrapper.function(next)
 }

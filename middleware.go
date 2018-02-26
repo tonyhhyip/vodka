@@ -7,3 +7,19 @@ package vodka
 type Middleware interface {
 	Wrap(next Handler) Handler
 }
+
+type Wrapper func(next Handler) Handler
+
+func WrapMiddleware(w Wrapper) Middleware {
+	return &wrapMiddleware{
+		w: w,
+	}
+}
+
+type wrapMiddleware struct {
+	w Wrapper
+}
+
+func (wm *wrapMiddleware) Wrap(next Handler) Handler {
+	return wm.w(next)
+}

@@ -8,8 +8,6 @@ import (
 	"net/http"
 	"reflect"
 	"testing"
-
-	"github.com/sirupsen/logrus"
 )
 
 func TestContext_UserValue(t *testing.T) {
@@ -207,7 +205,6 @@ func TestContext_JSON(t *testing.T) {
 
 	resp := &mockResponseWriter{}
 	server := New("")
-	server.SetLogger(logrus.New())
 	ctx := &Context{Response: resp, server: server}
 	ctx.JSON(http.StatusOK, user)
 	if resp.statusCode != http.StatusOK {
@@ -226,7 +223,6 @@ func TestContext_JSON(t *testing.T) {
 func TestContext_XML(t *testing.T) {
 	resp := &mockResponseWriter{}
 	server := New("")
-	server.SetLogger(logrus.New())
 	ctx := &Context{Response: resp, server: server}
 	ctx.XML(http.StatusOK, user)
 	if resp.statusCode != http.StatusOK {

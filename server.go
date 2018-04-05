@@ -13,6 +13,7 @@ func New(addr string) *Server {
 			Addr: addr,
 		},
 		Timeout: 30 * time.Second,
+		logger:  &NullLogger{},
 	}
 }
 
@@ -50,7 +51,7 @@ func (srv *Server) ListenAndServeTLS(certFile, keyFile string, handler Handler) 
 	return srv.Server.ListenAndServeTLS(certFile, keyFile)
 }
 
-// StandBy setup everything required for running a server
+// StandBy ready everything required for running a server
 func (srv *Server) StandBy(handler Handler) {
 	srv.Server.Handler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		base, cancel := context.WithTimeout(context.Background(), srv.Timeout)

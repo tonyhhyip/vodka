@@ -21,7 +21,7 @@ func TestServerInit(t *testing.T) {
 	})
 
 	srv := New("")
-	srv.init(handler)
+	srv.StandBy(handler)
 
 	resp := &mockResponseWriter{}
 	srv.Server.Handler.ServeHTTP(resp, nil)

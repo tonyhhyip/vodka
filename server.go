@@ -36,7 +36,7 @@ func (srv *Server) SetLogger(logger Logger) {
 // ListenAndServe listens on the TCP network address srv.Addr and then
 // calls Serve to handle requests on incoming connections.
 func (srv *Server) ListenAndServe(handler Handler) error {
-	srv.init(handler)
+	srv.StandBy(handler)
 
 	return srv.Server.ListenAndServe()
 }
@@ -45,12 +45,12 @@ func (srv *Server) ListenAndServe(handler Handler) error {
 // then calls Serve to handle requests on incoming TLS connections.
 // Accepted connections are configured to enable TCP keep-alives.
 func (srv *Server) ListenAndServeTLS(certFile, keyFile string, handler Handler) error {
-	srv.init(handler)
+	srv.StandBy(handler)
 
 	return srv.Server.ListenAndServeTLS(certFile, keyFile)
 }
 
-func (srv *Server) init(handler Handler) {
+func (srv *Server) StandBy(handler Handler) {
 	srv.Server.Handler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		base, cancel := context.WithTimeout(context.Background(), srv.Timeout)
 		ctx := newContext(base, srv, w, r)

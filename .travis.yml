@@ -3,6 +3,7 @@ language: go
 go:
   - 1.9.4
   - '1.10'
+  - 1.10.1
 
 install:
   - curl -o glide.zip -L https://github.com/Masterminds/glide/releases/download/v0.13.1/glide-v0.13.1-linux-amd64.zip

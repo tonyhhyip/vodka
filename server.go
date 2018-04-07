@@ -54,22 +54,19 @@ func (srv *Server) ListenAndServeTLS(certFile, keyFile string, handler Handler) 
 // StandBy ready everything required for running a server
 func (srv *Server) StandBy(handler Handler) {
 	srv.Server.Handler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		base, cancel := context.WithTimeout(context.Background(), srv.Timeout)
-		ctx := newContext(base, srv, w, r)
-
-		finish := make(chan bool)
-		go func() {
-			handler.Handle(ctx)
-			finish <- true
-		}()
-
-		defer cancel()
-
-		select {
-		case <-finish:
-		case <-ctx.Done():
-			srv.logger.Error(ctx.Err())
+		var (
+			base   context.Context
+			cancel context.CancelFunc
+		)
+		base = r.Context()
+		if _, timeout := base.Deadline(); !timeout {
+			base, cancel = context.WithTimeout(base, srv.Timeout)
+		} else {
+			base, cancel = context.WithCancel(base)
 		}
+		defer cancel()
+		ctx := newContext(base, srv, w, r)
+		handler.Handle(ctx)
 	})
 }
 

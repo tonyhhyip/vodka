@@ -2,6 +2,7 @@ package vodka
 
 import (
 	"bytes"
+	"net/http/httptest"
 	"testing"
 )
 
@@ -24,7 +25,7 @@ func TestServerInit(t *testing.T) {
 	srv.StandBy(handler)
 
 	resp := &mockResponseWriter{}
-	srv.Server.Handler.ServeHTTP(resp, nil)
+	srv.Server.Handler.ServeHTTP(resp, httptest.NewRequest("GET", "/", bytes.NewBuffer([]byte{})))
 
 	if !bytes.Equal(resp.body, body) {
 		t.Errorf("expected response body %q, got %q", body, resp.body)

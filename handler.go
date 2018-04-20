@@ -1,7 +1,9 @@
-// Copyright 2016 The Gem Authors. All rights reserved.
+// Copyright 2018 Tony Yip. All rights reserved.
 // Use of this source code is governed by a BSD-style license
 // that can be found in the LICENSE file.
 package vodka
+
+import "net/http"
 
 // Handler for processing incoming requests.
 type Handler interface {
@@ -30,4 +32,14 @@ func NewHandlerOption(middlewares ...Middleware) *HandlerOption {
 	return &HandlerOption{
 		Middlewares: middlewares,
 	}
+}
+
+// HttpHandle for wrap http.Handler into vodka.Handler
+type HttpHandler struct {
+	Handler http.Handler
+}
+
+// Handle calls Handler.ServeHTTP(ctx).
+func (h HttpHandler) Handle(ctx *Context) {
+	h.Handler.ServeHTTP(ctx.Response, ctx.Request)
 }

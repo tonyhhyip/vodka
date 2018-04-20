@@ -28,12 +28,16 @@ const (
 )
 
 func newContext(base context.Context, s *Server, w http.ResponseWriter, r *http.Request) *Context {
-	return &Context{
+	c := &Context{
 		Context:  base,
 		server:   s,
 		Request:  r,
 		Response: w,
 	}
+
+	c.Request = c.Request.WithContext(c)
+
+	return c
 }
 
 type userValue []*userData

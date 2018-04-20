@@ -204,8 +204,8 @@ func TestContext_JSON(t *testing.T) {
 	}
 
 	resp := &mockResponseWriter{}
-	server := New("")
-	ctx := &Context{Response: resp, server: server}
+	logger := new(NullLogger)
+	ctx := &Context{Response: resp, logger: logger}
 	ctx.JSON(http.StatusOK, user)
 	if resp.statusCode != http.StatusOK {
 		t.Errorf("expected status code %d, got %d", http.StatusOK, resp.statusCode)
@@ -222,8 +222,8 @@ func TestContext_JSON(t *testing.T) {
 
 func TestContext_XML(t *testing.T) {
 	resp := &mockResponseWriter{}
-	server := New("")
-	ctx := &Context{Response: resp, server: server}
+	logger := new(NullLogger)
+	ctx := &Context{Response: resp, logger: logger}
 	ctx.XML(http.StatusOK, user)
 	if resp.statusCode != http.StatusOK {
 		t.Errorf("expected status code %d, got %d", http.StatusOK, resp.statusCode)
@@ -255,9 +255,9 @@ func TestContext_XML(t *testing.T) {
 }
 
 func TestContext_Logger(t *testing.T) {
-	srv := New("")
-	ctx := &Context{server: srv}
-	if ctx.Logger() != srv.logger {
+	logger := new(NullLogger)
+	ctx := &Context{logger: logger}
+	if ctx.Logger() != logger {
 		t.Error("failed to get logger")
 	}
 }
@@ -331,12 +331,12 @@ func TestContext_Write(t *testing.T) {
 	}
 }
 
-func TestContext_SetServer(t *testing.T) {
-	srv := New("")
+func TestContext_SetLogger(t *testing.T) {
+	logger := new(NullLogger)
 	ctx := &Context{}
-	ctx.SetServer(srv)
+	ctx.SetLogger(logger)
 
-	if ctx.server != srv {
+	if ctx.logger != logger {
 		t.Error("failed to set server")
 	}
 }

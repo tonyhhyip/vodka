@@ -33,12 +33,16 @@ const (
 func newContext(base context.Context, s *Server, w http.ResponseWriter, r *http.Request) *Context {
 	c := &Context{
 		Context:  base,
-		server:   s,
 		Request:  r,
 		Response: w,
 	}
 
 	c.Request = c.Request.WithContext(c)
+	if s != nil {
+		c.logger = s.logger
+	} else {
+		c.logger = new(NullLogger)
+	}
 
 	return c
 }
@@ -54,8 +58,9 @@ type userData struct {
 type Context struct {
 	context.Context
 
-	server    *Server
 	userValue userValue
+
+	logger Logger
 
 	Request  *http.Request
 	Response http.ResponseWriter
@@ -97,14 +102,14 @@ func (ctx *Context) UserValue(key string) interface{} {
 	return nil
 }
 
-// Logger returns the server's logger.
+// Logger returns the context's logger.
 func (ctx *Context) Logger() Logger {
-	return ctx.server.logger
+	return ctx.logger
 }
 
-// SetServer for testing, do not use it in other places.
-func (ctx *Context) SetServer(server *Server) {
-	ctx.server = server
+// SetLogger set logger for the context
+func (ctx *Context) SetLogger(logger Logger) {
+	ctx.logger = logger
 }
 
 // Redirect replies to the request with a redirect to url,

@@ -73,7 +73,7 @@ func (srv *Server) WrapHandler(handler Handler) http.Handler {
 			base, cancel = context.WithCancel(base)
 		}
 		defer cancel()
-		ctx := newContext(base, srv, w, r)
+		ctx := NewContext(base, srv, w, r)
 
 		done := make(chan bool)
 

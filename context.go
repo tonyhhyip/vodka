@@ -30,7 +30,16 @@ const (
 	MethodPatch   = "PATCH"
 )
 
-func newContext(base context.Context, s *Server, w http.ResponseWriter, r *http.Request) *Context {
+func NewContext(base context.Context, s *Server, w http.ResponseWriter, r *http.Request) *Context {
+	var logger Logger = nil
+	if s != nil {
+		logger = s.logger
+	}
+
+	return NewContextWithLogger(base, logger, w, r)
+}
+
+func NewContextWithLogger(base context.Context, logger Logger, w http.ResponseWriter, r *http.Request) *Context {
 	c := &Context{
 		Context:  base,
 		Request:  r,
@@ -38,8 +47,8 @@ func newContext(base context.Context, s *Server, w http.ResponseWriter, r *http.
 	}
 
 	c.Request = c.Request.WithContext(c)
-	if s != nil {
-		c.logger = s.logger
+	if logger != nil {
+		c.logger = logger
 	} else {
 		c.logger = new(NullLogger)
 	}

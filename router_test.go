@@ -59,7 +59,7 @@ func TestRouter(t *testing.T) {
 	w := new(mockResponseWriter)
 
 	req, _ := http.NewRequest("GET", "/user/gopher", nil)
-	router.Handler().Handle(newContext(context.Background(), nil, w, req))
+	router.Handler().Handle(NewContext(context.Background(), nil, w, req))
 
 	if !routed {
 		t.Fatal("routing failed")
@@ -95,43 +95,43 @@ func TestRouterAPI(t *testing.T) {
 	w := new(mockResponseWriter)
 
 	r, _ := http.NewRequest("GET", "/GET", nil)
-	router.Handler().Handle(newContext(context.Background(), nil, w, r))
+	router.Handler().Handle(NewContext(context.Background(), nil, w, r))
 	if !get {
 		t.Error("routing GET failed")
 	}
 
 	r, _ = http.NewRequest("HEAD", "/GET", nil)
-	router.Handler().Handle(newContext(context.Background(), nil, w, r))
+	router.Handler().Handle(NewContext(context.Background(), nil, w, r))
 	if !head {
 		t.Error("routing HEAD failed")
 	}
 
 	r, _ = http.NewRequest("OPTIONS", "/GET", nil)
-	router.Handler().Handle(newContext(context.Background(), nil, w, r))
+	router.Handler().Handle(NewContext(context.Background(), nil, w, r))
 	if !options {
 		t.Error("routing OPTIONS failed")
 	}
 
 	r, _ = http.NewRequest("POST", "/POST", nil)
-	router.Handler().Handle(newContext(context.Background(), nil, w, r))
+	router.Handler().Handle(NewContext(context.Background(), nil, w, r))
 	if !post {
 		t.Error("routing POST failed")
 	}
 
 	r, _ = http.NewRequest("PUT", "/PUT", nil)
-	router.Handler().Handle(newContext(context.Background(), nil, w, r))
+	router.Handler().Handle(NewContext(context.Background(), nil, w, r))
 	if !put {
 		t.Error("routing PUT failed")
 	}
 
 	r, _ = http.NewRequest("PATCH", "/PATCH", nil)
-	router.Handler().Handle(newContext(context.Background(), nil, w, r))
+	router.Handler().Handle(NewContext(context.Background(), nil, w, r))
 	if !patch {
 		t.Error("routing PATCH failed")
 	}
 
 	r, _ = http.NewRequest("DELETE", "/DELETE", nil)
-	router.Handler().Handle(newContext(context.Background(), nil, w, r))
+	router.Handler().Handle(NewContext(context.Background(), nil, w, r))
 	if !delete {
 		t.Error("routing DELETE failed")
 	}
@@ -166,7 +166,7 @@ func TestRouterChaining(t *testing.T) {
 
 	r, _ := http.NewRequest("POST", "/foo", nil)
 	w := httptest.NewRecorder()
-	router1.Handler().Handle(newContext(context.Background(), nil, w, r))
+	router1.Handler().Handle(NewContext(context.Background(), nil, w, r))
 	if !(w.Code == http.StatusOK && fooHit) {
 		t.Errorf("Regular routing failed with router chaining.")
 		t.FailNow()
@@ -174,7 +174,7 @@ func TestRouterChaining(t *testing.T) {
 
 	r, _ = http.NewRequest("POST", "/bar", nil)
 	w = httptest.NewRecorder()
-	router1.Handler().Handle(newContext(context.Background(), nil, w, r))
+	router1.Handler().Handle(NewContext(context.Background(), nil, w, r))
 	if !(w.Code == http.StatusOK && barHit) {
 		t.Errorf("Chained routing failed with router chaining.")
 		t.FailNow()
@@ -182,7 +182,7 @@ func TestRouterChaining(t *testing.T) {
 
 	r, _ = http.NewRequest("POST", "/qax", nil)
 	w = httptest.NewRecorder()
-	router1.Handler().Handle(newContext(context.Background(), nil, w, r))
+	router1.Handler().Handle(NewContext(context.Background(), nil, w, r))
 	if !(w.Code == http.StatusNotFound) {
 		t.Errorf("NotFound behavior failed with router chaining.")
 		t.FailNow()
@@ -199,7 +199,7 @@ func TestRouterOPTIONS(t *testing.T) {
 	// * (server)
 	r, _ := http.NewRequest("OPTIONS", "*", nil)
 	w := httptest.NewRecorder()
-	router.handle(newContext(context.Background(), nil, w, r))
+	router.handle(NewContext(context.Background(), nil, w, r))
 	if !(w.Code == http.StatusOK) {
 		t.Errorf("OPTIONS handling failed: Code=%d, Header=%v", w.Code, w.Header())
 	} else if allow := w.Header().Get("Allow"); allow != "POST, OPTIONS" {
@@ -209,7 +209,7 @@ func TestRouterOPTIONS(t *testing.T) {
 	// path
 	r, _ = http.NewRequest("OPTIONS", "/path", nil)
 	w = httptest.NewRecorder()
-	router.handle(newContext(context.Background(), nil, w, r))
+	router.handle(NewContext(context.Background(), nil, w, r))
 	if !(w.Code == http.StatusOK) {
 		t.Errorf("OPTIONS handling failed: Code=%d, Header=%v", w.Code, w.Header())
 	} else if allow := w.Header().Get("Allow"); allow != "POST, OPTIONS" {
@@ -218,7 +218,7 @@ func TestRouterOPTIONS(t *testing.T) {
 
 	r, _ = http.NewRequest("OPTIONS", "/doesnotexist", nil)
 	w = httptest.NewRecorder()
-	router.handle(newContext(context.Background(), nil, w, r))
+	router.handle(NewContext(context.Background(), nil, w, r))
 	if !(w.Code == http.StatusNotFound) {
 		t.Errorf("OPTIONS handling failed: Code=%d, Header=%v", w.Code, w.Header())
 	}
@@ -230,7 +230,7 @@ func TestRouterOPTIONS(t *testing.T) {
 	// * (server)
 	r, _ = http.NewRequest("OPTIONS", "*", nil)
 	w = httptest.NewRecorder()
-	router.handle(newContext(context.Background(), nil, w, r))
+	router.handle(NewContext(context.Background(), nil, w, r))
 	if !(w.Code == http.StatusOK) {
 		t.Errorf("OPTIONS handling failed: Code=%d, Header=%v", w.Code, w.Header())
 	} else if allow := w.Header().Get("Allow"); allow != "POST, GET, OPTIONS" && allow != "GET, POST, OPTIONS" {
@@ -240,7 +240,7 @@ func TestRouterOPTIONS(t *testing.T) {
 	// path
 	r, _ = http.NewRequest("OPTIONS", "/path", nil)
 	w = httptest.NewRecorder()
-	router.handle(newContext(context.Background(), nil, w, r))
+	router.handle(NewContext(context.Background(), nil, w, r))
 	if !(w.Code == http.StatusOK) {
 		t.Errorf("OPTIONS handling failed: Code=%d, Header=%v", w.Code, w.Header())
 	} else if allow := w.Header().Get("Allow"); allow != "POST, GET, OPTIONS" && allow != "GET, POST, OPTIONS" {
@@ -257,7 +257,7 @@ func TestRouterOPTIONS(t *testing.T) {
 	// * (server)
 	r, _ = http.NewRequest("OPTIONS", "*", nil)
 	w = httptest.NewRecorder()
-	router.handle(newContext(context.Background(), nil, w, r))
+	router.handle(NewContext(context.Background(), nil, w, r))
 	if !(w.Code == http.StatusOK) {
 		t.Errorf("OPTIONS handling failed: Code=%d, Header=%v", w.Code, w.Header())
 	} else if allow := w.Header().Get("Allow"); allow != "POST, GET, OPTIONS" && allow != "GET, POST, OPTIONS" {
@@ -270,7 +270,7 @@ func TestRouterOPTIONS(t *testing.T) {
 	// path
 	r, _ = http.NewRequest("OPTIONS", "/path", nil)
 	w = httptest.NewRecorder()
-	router.handle(newContext(context.Background(), nil, w, r))
+	router.handle(NewContext(context.Background(), nil, w, r))
 	if !(w.Code == http.StatusOK) {
 		t.Errorf("OPTIONS handling failed: Code=%d, Header=%v", w.Code, w.Header())
 	}
@@ -288,7 +288,7 @@ func TestRouterNotAllowed(t *testing.T) {
 	// test not allowed
 	r, _ := http.NewRequest("GET", "/path", nil)
 	w := httptest.NewRecorder()
-	router.handle(newContext(context.Background(), nil, w, r))
+	router.handle(NewContext(context.Background(), nil, w, r))
 	if !(w.Code == http.StatusMethodNotAllowed) {
 		t.Errorf("NotAllowed handling failed: Code=%d, Header=%v", w.Code, w.Header())
 	} else if allow := w.Header().Get("Allow"); allow != "POST, OPTIONS" {
@@ -302,7 +302,7 @@ func TestRouterNotAllowed(t *testing.T) {
 	// test again
 	r, _ = http.NewRequest("GET", "/path", nil)
 	w = httptest.NewRecorder()
-	router.handle(newContext(context.Background(), nil, w, r))
+	router.handle(NewContext(context.Background(), nil, w, r))
 	if !(w.Code == http.StatusMethodNotAllowed) {
 		t.Errorf("NotAllowed handling failed: Code=%d, Header=%v", w.Code, w.Header())
 	} else if allow := w.Header().Get("Allow"); allow != "POST, DELETE, OPTIONS" && allow != "DELETE, POST, OPTIONS" {
@@ -316,7 +316,7 @@ func TestRouterNotAllowed(t *testing.T) {
 		ctx.Response.WriteHeader(http.StatusTeapot)
 		ctx.Response.Write([]byte(responseText))
 	})
-	router.handle(newContext(context.Background(), nil, w, r))
+	router.handle(NewContext(context.Background(), nil, w, r))
 	if got := w.Body.String(); !(got == responseText) {
 		t.Errorf("unexpected response got %q want %q", got, responseText)
 	}
@@ -354,7 +354,7 @@ func TestRouterNotFound(t *testing.T) {
 	for _, tr := range testRoutes {
 		r, _ := http.NewRequest("GET", tr.route, nil)
 		w := httptest.NewRecorder()
-		router.handle(newContext(context.Background(), nil, w, r))
+		router.handle(NewContext(context.Background(), nil, w, r))
 		if !(w.Code == tr.code && (w.Code == 404 || w.Header().Get("Location") == tr.location)) {
 			t.Errorf("NotFound handling route %s failed: Code=%d, Header=%v", tr.route, w.Code, w.Header())
 		}
@@ -368,7 +368,7 @@ func TestRouterNotFound(t *testing.T) {
 	})
 	r, _ := http.NewRequest("GET", "/nope", nil)
 	w := httptest.NewRecorder()
-	router.handle(newContext(context.Background(), nil, w, r))
+	router.handle(NewContext(context.Background(), nil, w, r))
 	if !(w.Code == 404 && notFound == true) {
 		t.Errorf("Custom NotFound handler failed: Code=%d, Header=%v", w.Code, w.Header())
 	}
@@ -377,7 +377,7 @@ func TestRouterNotFound(t *testing.T) {
 	router.PATCH("/path", handlerFunc)
 	r, _ = http.NewRequest("PATCH", "/path/", nil)
 	w = httptest.NewRecorder()
-	router.handle(newContext(context.Background(), nil, w, r))
+	router.handle(NewContext(context.Background(), nil, w, r))
 	if !(w.Code == 307 && fmt.Sprint(w.Header()) == "map[Location:[/path]]") {
 		t.Errorf("Custom NotFound handler failed: Code=%d, Header=%v", w.Code, w.Header())
 	}
@@ -387,7 +387,7 @@ func TestRouterNotFound(t *testing.T) {
 	router.GET("/a", handlerFunc)
 	r, _ = http.NewRequest("GET", "/", nil)
 	w = httptest.NewRecorder()
-	router.handle(newContext(context.Background(), nil, w, r))
+	router.handle(NewContext(context.Background(), nil, w, r))
 	if !(w.Code == 404) {
 		t.Errorf("NotFound handling route / failed: Code=%d", w.Code)
 	}
@@ -414,7 +414,7 @@ func TestRouterPanicHandler(t *testing.T) {
 		}
 	}()
 
-	router.handle(newContext(context.Background(), nil, w, req))
+	router.handle(NewContext(context.Background(), nil, w, req))
 
 	if !panicHandled {
 		t.Fatal("simulating failed")
@@ -500,7 +500,7 @@ func TestRouterServeFiles(t *testing.T) {
 	router.ServeFiles("/*filepath", mfs)
 	w := new(mockResponseWriter)
 	r, _ := http.NewRequest("GET", "/favicon.ico", nil)
-	router.handle(newContext(context.Background(), nil, w, r))
+	router.handle(NewContext(context.Background(), nil, w, r))
 	if !mfs.opened {
 		t.Error("serving file failed")
 	}
@@ -526,7 +526,7 @@ func TestRouter_Use(t *testing.T) {
 
 	w := new(mockResponseWriter)
 	r, _ := http.NewRequest("GET", "/", nil)
-	router.Handler().Handle(newContext(context.Background(), nil, w, r))
+	router.Handler().Handle(NewContext(context.Background(), nil, w, r))
 	if !m.handled {
 		t.Error("use middleware failed")
 	}
@@ -543,14 +543,14 @@ func TestRouter_Handle(t *testing.T) {
 
 	w := new(mockResponseWriter)
 	r, _ := http.NewRequest("GET", "/other", nil)
-	router.Handler().Handle(newContext(context.Background(), nil, w, r))
+	router.Handler().Handle(NewContext(context.Background(), nil, w, r))
 	if m.handled {
 		t.Error("use handler option failed: the ")
 	}
 
 	w = new(mockResponseWriter)
 	r, _ = http.NewRequest("GET", "/", nil)
-	router.Handler().Handle(newContext(context.Background(), nil, w, r))
+	router.Handler().Handle(NewContext(context.Background(), nil, w, r))
 	if !m.handled {
 		t.Error("use handler option failed")
 	}

@@ -66,20 +66,15 @@ func (srv *Server) WrapHandler(handler Handler) http.Handler {
 			base   context.Context
 			cancel context.CancelFunc
 		)
-		base = r.Context()
-		if _, timeout := base.Deadline(); !timeout {
-			base, cancel = context.WithTimeout(base, srv.Timeout)
-		} else {
-			base, cancel = context.WithCancel(base)
-		}
+		base, cancel = context.WithTimeout(r.Context(), srv.Timeout)
 		defer cancel()
 		ctx := NewContext(base, srv, w, r)
 
-		done := make(chan bool)
+		done := make(chan struct{})
 
-		go func(ctx *Context, done chan bool) {
+		go func(ctx *Context, done chan struct{}) {
 			handler.Handle(ctx)
-			done <- true
+			close(done)
 		}(ctx, done)
 
 		select {
@@ -88,6 +83,8 @@ func (srv *Server) WrapHandler(handler Handler) http.Handler {
 		case <-ctx.Done():
 			if err := ctx.Err(); err == context.DeadlineExceeded {
 				http.Error(w, "Timeout", http.StatusGatewayTimeout)
+			} else if err != nil {
+				srv.logger.Error(err)
 			}
 			break
 		}

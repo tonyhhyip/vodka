@@ -80,50 +80,85 @@ func (r *Router) Use(middleware Middleware) {
 	r.middlewares = append(r.middlewares, middleware)
 }
 
-// GET is a shortcut for router.Handle("GET", path, handle)
-func (r *Router) GET(path string, handle HandlerFunc, opts ...*HandlerOption) {
+// GET is a shortcut for router.HandleFunc("GET", path, handle)
+func (r *Router) GET(path string, handle Handler, opts ...*HandlerOption) {
 	r.Handle(MethodGet, path, handle, opts...)
 }
 
+// GET is a shortcut for router.HandleFunc("GET", path, handle)
+func (r *Router) GETFunc(path string, handle HandlerFunc, opts ...*HandlerOption) {
+	r.HandleFunc(MethodGet, path, handle, opts...)
+}
+
 // HEAD is a shortcut for router.Handle("HEAD", path, handle)
-func (r *Router) HEAD(path string, handle HandlerFunc, opts ...*HandlerOption) {
+func (r *Router) HEAD(path string, handle Handler, opts ...*HandlerOption) {
 	r.Handle(MethodHead, path, handle, opts...)
 }
 
+// HEADFunc is a shortcut for router.HandleFunc("HEAD", path, handle)
+func (r *Router) HEADFunc(path string, handle HandlerFunc, opts ...*HandlerOption) {
+	r.HandleFunc(MethodHead, path, handle, opts...)
+}
+
 // OPTIONS is a shortcut for router.Handle("OPTIONS", path, handle)
-func (r *Router) OPTIONS(path string, handle HandlerFunc, opts ...*HandlerOption) {
+func (r *Router) OPTIONS(path string, handle Handler, opts ...*HandlerOption) {
 	r.Handle(MethodOptions, path, handle, opts...)
 }
 
+// OPTIONSFunc is a shortcut for router.HandleFunc("OPTIONS", path, handle)
+func (r *Router) OPTIONSFunc(path string, handle func(*Context), opts ...*HandlerOption) {
+	r.HandleFunc(MethodOptions, path, handle, opts...)
+}
+
 // POST is a shortcut for router.Handle("POST", path, handle)
-func (r *Router) POST(path string, handle HandlerFunc, opts ...*HandlerOption) {
+func (r *Router) POST(path string, handle Handler, opts ...*HandlerOption) {
 	r.Handle(MethodPost, path, handle, opts...)
 }
 
+// POSTFunc is a shortcut for router.HandleFunc("POST", path, handle)
+func (r *Router) POSTFunc(path string, handle func(*Context), opts ...*HandlerOption) {
+	r.HandleFunc(MethodPost, path, handle, opts...)
+}
+
 // PUT is a shortcut for router.Handle("PUT", path, handle)
-func (r *Router) PUT(path string, handle HandlerFunc, opts ...*HandlerOption) {
+func (r *Router) PUT(path string, handle Handler, opts ...*HandlerOption) {
 	r.Handle(MethodPut, path, handle, opts...)
 }
 
+// PUTFunc is a shortcut for router.HandleFunc("PUT", path, handle)
+func (r *Router) PUTFunc(path string, handle func(*Context), opts ...*HandlerOption) {
+	r.HandleFunc(MethodPut, path, handle, opts...)
+}
+
 // PATCH is a shortcut for router.Handle("PATCH", path, handle)
-func (r *Router) PATCH(path string, handle HandlerFunc, opts ...*HandlerOption) {
+func (r *Router) PATCH(path string, handle Handler, opts ...*HandlerOption) {
 	r.Handle(MethodPatch, path, handle, opts...)
 }
 
+// PATCH is a shortcut for router.HandleFunc("PATCH", path, handle)
+func (r *Router) PATCHFunc(path string, handle func(*Context), opts ...*HandlerOption) {
+	r.HandleFunc(MethodPatch, path, handle, opts...)
+}
+
 // DELETE is a shortcut for router.Handle("DELETE", path, handle)
-func (r *Router) DELETE(path string, handle HandlerFunc, opts ...*HandlerOption) {
+func (r *Router) DELETE(path string, handle Handler, opts ...*HandlerOption) {
 	r.Handle(MethodDelete, path, handle, opts...)
+}
+
+// DELETEFunc is a shortcut for router.DELETE(path, HandlerFunc(handle))
+func (r *Router) DELETEFunc(path string, handle func(*Context), opts ...*HandlerOption) {
+	r.DELETE(path, HandlerFunc(handle), opts...)
 }
 
 // Handle registers a new request handle with the given path and method.
 //
-// For GET, POST, PUT, PATCH and DELETE requests the respective shortcut
+// For GET, POST, PUT, PATCH and DELETEFunc requests the respective shortcut
 // functions can be used.
 //
 // This function is intended for bulk loading and to allow the usage of less
 // frequently used, non-standardized or custom methods (e.g. for internal
 // communication with a proxy).
-func (r *Router) Handle(method, path string, handle HandlerFunc, opts ...*HandlerOption) {
+func (r *Router) Handle(method, path string, handler Handler, opts ...*HandlerOption) {
 	if path[0] != '/' {
 		panic("path must begin with '/' in path '" + path + "'")
 	}
@@ -138,8 +173,6 @@ func (r *Router) Handle(method, path string, handle HandlerFunc, opts ...*Handle
 		r.trees[method] = root
 	}
 
-	var handler Handler = HandlerFunc(handle)
-
 	if len(opts) > 0 {
 		// wrapped by middlewares.
 		for i := len(opts[0].Middlewares) - 1; i >= 0; i-- {
@@ -148,6 +181,18 @@ func (r *Router) Handle(method, path string, handle HandlerFunc, opts ...*Handle
 	}
 
 	root.addRoute(path, handler)
+}
+
+// HandleFunc registers a new request handle with the given path and method.
+//
+// For GET, POST, PUT, PATCH and DELETEFunc requests the respective shortcut
+// functions can be used.
+//
+// This function is intended for bulk loading and to allow the usage of less
+// frequently used, non-standardized or custom methods (e.g. for internal
+// communication with a proxy).
+func (r *Router) HandleFunc(method, path string, handler func(*Context), opts ...*HandlerOption) {
+	r.Handle(method, path, HandlerFunc(handler), opts...)
 }
 
 // ServeFiles serves files from the given file system root.
@@ -173,7 +218,7 @@ func (r *Router) ServeFiles(path string, root http.FileSystem, opts ...*HandlerO
 		fileServer.ServeHTTP(ctx.Response, ctx.Request)
 	}
 
-	r.GET(path, handle, opts...)
+	r.GETFunc(path, handle, opts...)
 }
 
 func (r *Router) recv(ctx *Context) {
@@ -289,7 +334,7 @@ func (r *Router) handle(ctx *Context) {
 	}
 
 	if ctx.Request.Method == MethodOptions {
-		// Handle OPTIONS requests
+		// HandleFunc OPTIONS requests
 		if r.HandleOPTIONS {
 			if allow := r.allowed(path, ctx.Request.Method, ctx); len(allow) > 0 {
 				ctx.Response.Header().Set("Allow", allow)
@@ -297,7 +342,7 @@ func (r *Router) handle(ctx *Context) {
 			}
 		}
 	} else {
-		// Handle 405
+		// HandleFunc 405
 		if r.HandleMethodNotAllowed {
 			if allow := r.allowed(path, ctx.Request.Method, ctx); len(allow) > 0 {
 				ctx.Response.Header().Set("Allow", allow)
@@ -314,7 +359,7 @@ func (r *Router) handle(ctx *Context) {
 		}
 	}
 
-	// Handle 404
+	// HandleFunc 404
 	if r.NotFound != nil {
 		r.NotFound.Handle(ctx)
 	} else {
